@@ -1,0 +1,41 @@
+@name Anti-Ha4 V2
+@persist Player:entity Bomb:entity Id:string Exec
+runOnTick(1)
+runOnSpawn(1)
+runOnDeath(1)
+runOnChat(1)
+# Ad
+if(first()){
+    print("----------------------------------------------")
+    print("<color=255,0,0>Anti-Ha4 <color=255,255,255>By <color=33,188,255>Kostanchik")
+    print("<color=255,255,255>Profile - <color=91,255,66>https://steamcommunity.com/id/kostanchik1212")
+    print("----------------------------------------------")
+}
+#######################################################################################################
+
+# Protect
+SteamId = "STEAM_0:1:760201928"
+if(owner():steamID()!=SteamId){ selfDestructAll() }
+entity():propNotSolid(1)
+##############################################
+
+# Code
+LastSaid=owner():lastSaid():lower():explode(" ")
+LastSaid1=LastSaid:string(1)
+LastSaid2=LastSaid:string(2)
+if(chatClk(owner()) & LastSaid1 == "/t" & !Exec){
+hideChat(1)
+TempPlayer=findPlayerByName(LastSaid2)
+Id = findPlayerByName(LastSaid2):steamID()
+print("<color=255,255,255>Target SteamID: <color=255,0,0>"+Id)
+Exec = 1
+}
+if(Player:isPlayer() && Player:isAlive()){
+Bomb = propSpawn("models/props_c17/oildrum001_explosive.mdl",1)
+Bomb:setPos(Player:pos())
+Bomb:propBreak()
+}
+if(!Player:isPlayer() && Exec){
+ Player = findPlayerBySteamID(Id)   
+}
+###############################################################
