@@ -1,0 +1,50 @@
+--@name Fortnite Build
+--@author MongRaff
+--@server
+local cross = holograms.create(chip():getPos(),Angle(),"models/props_junk/wood_pallet001a.mdl")
+--cross:setMaterial("models/wireframe")
+cross:setColor(Color(25,105,255,150))
+function r(num)
+    return math.round(num)
+end
+local a,b = true,true
+local pos = chip():getPos()
+local ang = Angle()
+hook.add("think","",function()
+    if isValid(owner():getActiveWeapon()) then
+        if owner():getActiveWeapon():getClass() == "weapon_crowbar" then
+            if owner():keyDown(IN_KEY.ATTACK2) then
+                if a then
+                    if prop.canSpawn() then
+                        local pro = prop.create(cross:getPos(),cross:getAngles(),"models/props_junk/wood_pallet001a.mdl",true)
+                        pro:setUnbreakable(true)
+                        pro:emitSound("Wood_Box.ImpactHard",100,100)
+                    end
+                    a = false
+                end
+            else
+                a = true
+            end
+            if owner():keyDown(IN_KEY.RELOAD) then
+                if b then
+                    local ent = owner():getEyeTrace().Entity
+                    if ent:getOwner() then
+                        if ent:getOwner() == owner() then
+                            ent:breakEnt()
+                            cross:emitSound("Wood.Break",100,100)
+                        end
+                    end
+                    b = false
+                end
+            else
+                b = true
+            end
+            local p = owner():getShootPos()+owner():getEyeAngles():getForward()*75
+            local a = owner():getEyeAngles()
+            cross:setPos(Vector(r(p.x/16)*16,r(p.y/16)*16,r(p.z/16)*16))
+            cross:setAngles(Angle(r(a.p/45)*45-90,r(a.y/45)*45,r(a.r/45)*45))
+        else
+            cross:setPos(Vector(0,0,-1000))
+        end
+    end
+end)
