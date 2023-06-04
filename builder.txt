@@ -1,0 +1,157 @@
+--@name Builder
+--@author MongRaff
+--@shared
+if SERVER then
+    local model = "models/props_phx/construct/metal_tube.mdl"
+    local cross = holograms.create(chip():getPos(),Angle(),model)
+    cross:setColor(Color(100,255,100,100))
+    --cross:setMaterial("debug/debugdrawflat")
+    cross:setMaterial("models/wireframe")
+    local rotate = Angle()
+    local angles = {Angle(45,0,0),Angle(0,45,0),Angle(0,0,45)}
+    local i = 0
+    local o = 0
+    local props = {}
+    local axis = holograms.create(chip():getPos(),Angle(),"models/holograms/cube.mdl",Vector(0.3,0.3,5))
+    axis:setColor(Color(0,0,0,0))
+    function r(val)
+        return math.round(val)
+    end
+    local models = {
+        "models/props_phx/construct/metal_tubex2.mdl",
+        "models/props_phx/construct/metal_tube.mdl",
+        "models/props_phx/construct/metal_plate4x4_tri.mdl",
+        "models/props_phx/construct/metal_plate4x4.mdl",
+        "models/props_phx/construct/metal_plate2x4_tri.mdl",
+        "models/props_phx/construct/metal_plate2x4.mdl",
+        "models/props_phx/construct/metal_plate2x2_tri.mdl",
+        "models/props_phx/construct/metal_plate2x2.mdl",
+        "models/props_phx/construct/metal_plate1x2_tri.mdl",
+        "models/props_phx/construct/metal_plate1x2.mdl",
+        "models/props_phx/construct/metal_plate1_tri.mdl",
+        "models/props_phx/construct/metal_plate1.mdl"
+    }
+    local size = Vector(47/2)
+    function newmodel(mod)
+        cross:setModel(mod)
+        local obb = cross:obbSize()
+        model = mod
+        cross:emitSound("garrysmod/ui_click.wav",100,100)
+    end
+    newmodel(model)
+    local a,b,c,e,f = true,true,true,true,true
+    function spawn(pos)
+        local pro = prop.create(pos,cross:getAngles(),model,true)
+        pro:emitSound("Wood_Box.ImpactHard",100,100)
+        table.insert(props,1,pro)
+        if #props-1 ~= 0 then
+            constraint.weld(props[1],props[2])
+        end
+    end
+    hook.add("think","",function()
+        if owner():getActiveWeapon():getClass() == "weapon_crowbar" then
+             if owner():keyDown(IN_KEY.ATTACK) then
+                if a then
+                    spawn(cross:getPos())
+                    a = false
+                end
+            else
+                a = true
+            end
+            if owner():keyDown(IN_KEY.ATTACK2) then
+                if b then
+                    local ent = owner():getEyeTrace().Entity
+                    if ent:getOwner() then
+                        if ent:getOwner() == owner() then
+                            if table.hasValue(props,ent) then
+                                table.removeByValue(props,ent)
+                            end
+                            ent:remove()
+                            cross:emitSound("Wood.Break",100,100)
+                        end
+                    end
+                    b = false
+                end
+            else
+                b = true
+            end
+            if owner():keyDown(IN_KEY.SPEED) then
+                if c then
+                    o = o + 1
+                    newmodel(models[o%12+1])
+                    c = false
+                end
+            else
+                c = true
+            end
+            if owner():keyDown(IN_KEY.USE) then
+                if e then
+                    i = i + 1
+                    rotate = angles[i%3+1]
+                    e = false
+                end
+            else
+                e = true
+            end
+            if owner():keyDown(IN_KEY.RELOAD) then
+                if f then
+                    cross:setAngles(cross:getAngles()-rotate)
+                    f = false
+                end
+            else
+                f = true
+            end
+            local pos = owner():getEyeTrace().HitPos
+            local dis = pos:getDistance(owner():getShootPos())
+            if dis < 200 then
+                d = pos-chip():getPos()
+            else
+                d = (owner():getShootPos()+owner():getEyeAngles():getForward()*200)-chip():getPos()
+            end
+            cross:setPos(chip():getPos()+
+            Vector((r(d.x/size.x)*size.x),
+            (r(d.y/size.y)*size.y),
+            (r(d.z/size.z)*size.z)))
+            axis:setPos(cross:getPos())
+            axis:setAngles(rotate)
+        else
+            cross:setPos(Vector(0,0,-1000))
+            axis:setPos(Vector(0,0,-1000))
+        end
+    end)
+    return
+end
+local hide = false
+local a = true
+hook.add("drawhud","guide",function()
+    local x,y = render.getResolution()
+    render.setFont("CloseCaption_Bold")
+    if hide then
+        render.drawSimpleText(x/2,10,"Show help | SHIFT+H",1,0)
+    else
+        render.drawSimpleText(10,y/5,"Help:",0,0)
+        render.drawSimpleText(10,y/5+25,"LMB - Spawn",0,0)
+        render.drawSimpleText(10,y/5+50,"RMB - Break",0,0)
+        render.drawSimpleText(10,y/5+75,"E - Rotate Axis",0,0)
+        render.drawSimpleText(10,y/5+100,"R - Rotate",0,0)
+        render.drawSimpleText(10,y/5+125,"Shift - Change Model",0,0)
+        render.drawSimpleText(10,y/5+150,"Pick crowbar to start build",0,0)
+        render.drawSimpleText(10,y/5+185,"Hide help | SHIFT+H",0,0)
+    end
+    if player():keyDown(IN_KEY.SPEED) then
+        if input.isKeyDown(KEY.H) then
+            if a then
+                hide = not hide
+                a = false
+            end
+        else
+            a = true
+        end
+    end
+end)
+if player() == owner() then
+    enableHud(nil,true)
+end
+
+
+
