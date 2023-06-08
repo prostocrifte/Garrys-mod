@@ -1,0 +1,74 @@
+--@name waterhazardgate5_proverka
+--@author MongRaff
+--@server
+--------------------------------------------------------------------------------------------------------------------
+local open_sound = "ambient/machines/floodgate_move_short1.wav"
+local stop_sound = "ambient/machines/floodgate_stop1.wav"
+local speed = 0.5
+local pos_open = 85
+local pos_close = 0
+--------------------------------------------------------------------------------------------------------------------
+--chip():setColor(Color(0,0,0,0))
+--chip():setPos(chip():getPos()+Vector(0,0,65))
+local pro = prop.create(chip():getPos(),Angle(),"models/props_canal/locks_large.mdl",true)
+local pro2 = prop.create(chip():getPos(),Angle(),"models/props_canal/locks_large_b.mdl",true)
+local holo = holograms.create(chip():getPos()+chip():getAngles():getRight()*400,Angle(),"models/holograms/hq_icosphere.mdl",Vector(0))
+local holo2 = holograms.create(chip():getPos()-chip():getAngles():getRight()*400,Angle(),"models/holograms/hq_icosphere.mdl",Vector(0))
+--------------------------------------------------------------------------------------------------------------------
+local open = false
+local ang = Angle()
+local vang = Angle()
+local a = true
+local b = true
+local full = true
+--------------------------------------------------------------------------------------------------------------------
+if SERVER then
+    wire.adjustPorts(
+        {
+            Active="number",
+        })
+end
+hook.add("input", "", function(key, value)
+    if key == 'Active' then
+        if open then
+            open = false
+            pro:emitSound(open_sound,75,100)
+        else
+            open = true
+            pro:emitSound(open_sound,75,100)
+        end
+    end
+end)
+hook.add("tick","",function()
+    if open then
+        b = true
+        if ang.y < pos_open then
+            ang = ang + Angle(0,speed,0)
+        else
+            if a then
+                chip():emitSound(stop_sound,100,100)
+                chip():stopSound(open_sound)
+                a = false
+            end
+        end
+    else
+        a = true
+        if ang.y > pos_close then
+            ang = ang - Angle(0,speed,0)
+            b = true
+        end
+        if b then
+            chip():emitSound(stop_sound,100,100)
+            chip():stopSound(open_sound)
+            b = false
+        end
+    end
+    pro:setPos(holo:getPos()-holo:getAngles():getRight()*240)
+    pro:setAngles(holo:getAngles())
+    holo:setPos(chip():getPos()-chip():getAngles():getRight()*-460.5)
+    holo:setAngles(chip():getAngles()-ang)
+    pro2:setPos(holo2:getPos()+holo2:getAngles():getRight()*240)
+    pro2:setAngles(holo2:getAngles())
+    holo2:setPos(chip():getPos()+chip():getAngles():getRight()*-460.5)
+    holo2:setAngles(chip():getAngles()+ang)
+end)
