@@ -1,0 +1,39 @@
+--@name Door zost
+--@author MongRaff
+--@server
+--@model models/props_wasteland/interior_fence002e.mdl
+chip():setPos(chip():getPos()+Vector(0,0,65))
+local pro = prop.create(chip():getPos(),Angle(),"models/props_wasteland/interior_fence001g.mdl",true)
+local holo = holograms.create(chip():getPos()-chip():getAngles():getRight()*25,Angle(),"models/holograms/hq_icosphere.mdl",Vector(0))
+local open = false
+local ang = Angle()
+local vang = Angle()
+hook.add("KeyPress","",function(ply,key)
+    if not ply:keyDown(IN_KEY.USE) then return end
+    local ent = ply:getEyeTrace().Entity
+    if ent == pro then
+        if open then
+            open = false
+            holo:emitSound("ambient/levels/outland/ol03_bincreak02.wav",75,100)
+        else
+            open = true
+            holo:emitSound("ambient/levels/outland/ol03_bincreak02.wav",75,100)
+        end
+    end
+end)
+hook.add("tick","",function()
+    --ang = math.lerpAngle(0.1,ang,vang)
+    if open then
+        if ang.y < 90 then
+            ang = ang + Angle(0,5,0)
+        end
+    else
+        if ang.y > 0 then
+            ang = ang - Angle(0,5,0)
+        end
+    end
+    pro:setPos(holo:getPos()+holo:getAngles():getRight()*25)
+    pro:setAngles(holo:getAngles())
+    holo:setPos(chip():getPos()-chip():getAngles():getRight()*25)
+    holo:setAngles(chip():getAngles()+ang)
+end)
