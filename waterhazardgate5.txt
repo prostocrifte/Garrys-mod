@@ -1,0 +1,62 @@
+--@name waterhazardgate5
+--@author MongRaff
+--@server
+local open_sound = "ambient/machines/floodgate_move_short1.wav"
+local stop_sound = "ambient/machines/floodgate_stop1.wav"
+local speed = 0.5
+chip():setColor(Color(0,0,0,0))
+--chip():setPos(chip():getPos()+Vector(0,0,65))
+local pro = prop.create(chip():getPos(),Angle(),"models/props_canal/locks_large.mdl",true)
+local pro2 = prop.create(chip():getPos(),Angle(),"models/props_canal/locks_large_b.mdl",true)
+local holo = holograms.create(chip():getPos()+chip():getAngles():getRight()*500,Angle(),"models/holograms/hq_icosphere.mdl",Vector(0))
+local holo2 = holograms.create(chip():getPos()-chip():getAngles():getRight()*500,Angle(),"models/holograms/hq_icosphere.mdl",Vector(0))
+local open = false
+local ang = Angle()
+local vang = Angle()
+local a = true
+local b = true
+local full = true
+hook.add("KeyPress","",function(ply,key)
+    if not ply:keyDown(IN_KEY.USE) then return end
+    local ent = ply:getEyeTrace().Entity
+    if ent == pro or ent == pro2 then
+        if full then
+            open = not open
+            chip():emitSound(open_sound,100,100)
+            full = false
+        end
+    end
+end)
+hook.add("tick","",function()
+    --ang = math.lerpAngle(0.1,ang,vang)
+    if open then
+        if ang.y < 85 then
+            ang = ang + Angle(0,speed,0)
+            a = true
+        else
+            if a then
+                chip():emitSound(stop_sound,100,100)
+                full = true
+                a = false
+            end
+        end
+    else
+        if ang.y > 0 then
+            ang = ang - Angle(0,speed,0)
+            b = true
+        end
+        if b then
+            chip():emitSound(stop_sound,100,100)
+            full = true
+            b = false
+        end
+    end
+    pro:setPos(holo:getPos()-holo:getAngles():getRight()*240)
+    pro:setAngles(holo:getAngles())
+    holo:setPos(chip():getPos()-chip():getAngles():getRight()*-460.5)
+    holo:setAngles(chip():getAngles()-ang)
+    pro2:setPos(holo2:getPos()+holo2:getAngles():getRight()*240)
+    pro2:setAngles(holo2:getAngles())
+    holo2:setPos(chip():getPos()+chip():getAngles():getRight()*-460.5)
+    holo2:setAngles(chip():getAngles()+ang)
+end)
